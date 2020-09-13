@@ -2,12 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 const SERVER_IP = 'https://n1lv4wjyc3.execute-api.eu-west-1.amazonaws.com/dev';
-final storage = FlutterSecureStorage();
-
 void main() {
   runApp(MyApp());
 }
@@ -24,14 +21,13 @@ class LoginPage extends StatelessWidget {
 
   Future<String> attemptLogIn(String username, String password) async {
     var res = await http
-        .post("$SERVER_IP/login", headers: <String, String>{
-      HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
-      'x-api-key': 'xddfuheeLr5ne39P10y4z8pUx6unUweP8xxKjOe5'
-    },
-     body: jsonEncode(<String, String>{
-          'username': username,
-          'password': password
-        }))
+        .post("$SERVER_IP/login",
+            headers: <String, String>{
+              HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+              'x-api-key': 'xddfuheeLr5ne39P10y4z8pUx6unUweP8xxKjOe5'
+            },
+            body: jsonEncode(
+                <String, String>{'username': username, 'password': password}))
         .catchError((error) {
       print(error.toString());
     });
@@ -64,7 +60,6 @@ class LoginPage extends StatelessWidget {
                     var password = _passwordController.text;
                     var jwt = await attemptLogIn(username, password);
                     if (jwt != null) {
-                      storage.write(key: "jwt", value: jwt);
                       Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -96,27 +91,14 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text("Secret Data Screen")),
         body: Center(
-          child: FutureBuilder(
-              future:
-                  http.read('$SERVER_IP/data', headers: {"Authorization": jwt}),
-              builder: (context, snapshot) => snapshot.hasData
-                  ? Column(
-                      children: <Widget>[
-                        Text("${payload['username']}, here's the data:"),
-                        Text(snapshot.data,
-                            style: Theme.of(context).textTheme.display1)
-                      ],
-                    )
-                  : snapshot.hasError
-                      ? Text("An error occurred")
-                      : CircularProgressIndicator()),
+          child: Text(jwt)
         ),
       );
 }
 
 class MyApp extends StatelessWidget {
   Future<String> get jwtOrEmpty async {
-    var jwt = await storage.read(key: "jwt");
+    var jwt = "";
     if (jwt == null) return "";
     return jwt;
   }
