@@ -9,17 +9,26 @@ void main() {
   runApp(MyApp());
 }
 
-class LoginPage extends StatelessWidget {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
+class StatelessWithDialogWidget extends StatelessWidget {
   void displayDialog(context, title, text) => showDialog(
         context: context,
         builder: (context) =>
             AlertDialog(title: Text(title), content: Text(text)),
       );
 
-  Future<String> attemptLogIn(String username, String password) async {
+  @override
+  Widget build(BuildContext context) {
+    // ignore: todo
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+}
+
+class LoginPage extends StatelessWithDialogWidget {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<Map> attemptLogIn(String username, String password) async {
     var res = await http
         .post("$SERVER_IP/login",
             headers: <String, String>{
@@ -31,7 +40,7 @@ class LoginPage extends StatelessWidget {
         .catchError((error) {
       print(error.toString());
     });
-    if (res.statusCode == 200) return res.body;
+    if (res.statusCode == 200) return json.decode(res.body);
     return null;
   }
 
@@ -45,6 +54,9 @@ class LoginPage extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: <Widget>[
+              Image.network(
+                'http://af-static.s3-website-eu-west-1.amazonaws.com/logoAF.jpg',
+              ),
               TextField(
                 controller: _usernameController,
                 decoration: InputDecoration(labelText: 'Username'),
@@ -58,12 +70,13 @@ class LoginPage extends StatelessWidget {
                   onPressed: () async {
                     var username = _usernameController.text;
                     var password = _passwordController.text;
-                    var jwt = await attemptLogIn(username, password);
-                    if (jwt != null) {
+                    var response = await attemptLogIn(username, password);
+                    if (response != null) {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => HomePage.fromBase64(jwt)));
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MenuRoute(response)),
+                      );
                     } else {
                       displayDialog(context, "An Error Occurred",
                           "No account was found matching that username and password");
@@ -90,9 +103,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text("Secret Data Screen")),
-        body: Center(
-          child: Text(jwt)
-        ),
+        body: Center(child: Text(jwt)),
       );
 }
 
@@ -133,6 +144,86 @@ class MyApp extends StatelessWidget {
               return LoginPage();
             }
           }),
+    );
+  }
+}
+
+class MenuRoute extends StatelessWithDialogWidget {
+  MenuRoute(this.response);
+  final Map<String, dynamic> response;
+
+  Future<Map> checkin(String jwt) async {
+    var res = await http.post(
+      "$SERVER_IP/check-in",
+      headers: <String, String>{
+        HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
+        'x-api-key': 'xddfuheeLr5ne39P10y4z8pUx6unUweP8xxKjOe5'
+      },
+    ).catchError((error) {
+      print(error.toString());
+    });
+    if (res.statusCode == 200) return json.decode(res.body);
+    return null;
+  }
+
+  Future<Map> checkout(String jwt) async {
+    var res = await http.post(
+      "$SERVER_IP/check-out",
+      headers: <String, String>{
+        HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
+        'x-api-key': 'xddfuheeLr5ne39P10y4z8pUx6unUweP8xxKjOe5'
+      },
+    ).catchError((error) {
+      print(error.toString());
+    });
+    if (res.statusCode == 200) return json.decode(res.body);
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Menu"),
+      ),
+      body: Center(
+          child: Column(
+        children: <Widget>[
+          Image.network(
+            'http://af-static.s3-website-eu-west-1.amazonaws.com/logoAF.jpg',
+          ),
+          RaisedButton(
+            onPressed: () async {
+              var jwt = this.response["token"];
+              var response = await checkin(jwt);
+              if (response != null) {
+                this.response["token"] = response["token"];
+                displayDialog(
+                    context, "Checkin effettuato", response["message"]);
+              } else {
+                displayDialog(context, "An Error Occurred", "Checkin failed");
+              }
+            },
+            child: Text('CHECKIN'),
+          ),
+          RaisedButton(
+            onPressed: () async {
+              var jwt = this.response["token"];
+              var response = await checkout(jwt);
+              if (response != null) {
+                this.response["token"] = response["token"];
+                displayDialog(
+                    context, "Checkout effettuato", response["message"]);
+              } else {
+                displayDialog(context, "An Error Occurred", "Checkout failed");
+              }
+            },
+            child: Text('CHECKOUT'),
+          ),
+        ],
+      )),
     );
   }
 }
