@@ -1,3 +1,5 @@
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -46,6 +48,27 @@ class StatelessWithDialogWidget extends StatelessWidget {
   }
 }
 
+class StatefulWithDialogWidget extends StatefulWidget {
+  void displayDialog(context, title, text) => showDialog(
+        context: context,
+        builder: (context) =>
+            AlertDialog(title: Text(title), content: Text(text)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    // ignore: todo
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    throw UnimplementedError();
+  }
+}
+
 class LoginPage extends StatelessWithDialogWidget {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -62,7 +85,11 @@ class LoginPage extends StatelessWithDialogWidget {
         .catchError((error) {
       print(error.toString());
     });
-    if (res.statusCode == 200) return json.decode(res.body);
+    try {
+      if (res.statusCode == 200) return json.decode(res.body);
+    } catch (e) {
+      //return <String, String>{"message": e.toString()
+    }
     return null;
   }
 
@@ -70,7 +97,7 @@ class LoginPage extends StatelessWithDialogWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("Log In"),
+          title: Text("Check@pp"),
         ),
         body: ContainerBoxDecorationWithOpacity(
           imagePath:
@@ -92,6 +119,8 @@ class LoginPage extends StatelessWithDialogWidget {
                     var password = _passwordController.text;
                     var response = await attemptLogIn(username, password);
                     if (response != null) {
+                      window.localStorage["refreshToken"] =
+                          response["refresh_token"];
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -127,38 +156,64 @@ class HomePage extends StatelessWidget {
       );
 }
 
-class MyApp extends StatelessWidget {
-  Future<String> get jwtOrEmpty async {
-    var jwt = "";
-    if (jwt == null) return "";
-    return jwt;
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Future<Map> get jwtOrEmpty async {
+    if (window.localStorage.containsKey("refreshToken")) {
+      var response = await refreshToken(window.localStorage["refreshToken"]);
+      if (response != null) {
+        window.localStorage["refreshToken"] = response["refresh_token"];
+        return response;
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  Future<Map> refreshToken(String token) async {
+    var res = await http
+        .post("$SERVER_IP/refresh-token",
+            headers: <String, String>{
+              HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+              HttpHeaders.authorizationHeader: ' Bearer ' + token,
+              'x-api-key': 'xddfuheeLr5ne39P10y4z8pUx6unUweP8xxKjOe5'
+            },
+            body: jsonEncode({}))
+        .catchError((error) {
+      print(error.toString());
+    });
+    if (res.statusCode == 200) return json.decode(res.body);
+    return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Authentication Demo',
+      title: 'Check@app',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
       home: FutureBuilder(
           future: jwtOrEmpty,
           builder: (context, snapshot) {
             if (snapshot.data != "" && snapshot.hasData) {
-              var str = snapshot.data;
-              var jwt = str.split(".");
+              var payload = snapshot.data;
 
-              if (jwt.length != 3) {
+              if (payload == null) {
                 return LoginPage();
               } else {
-                var payload = json.decode(
-                    ascii.decode(base64.decode(base64.normalize(jwt[1]))));
-                if (DateTime.fromMillisecondsSinceEpoch(payload["exp"] * 1000)
-                    .isAfter(DateTime.now())) {
-                  return HomePage(str, payload);
-                } else {
-                  return LoginPage();
-                }
+                return MenuRoute(payload);
               }
             } else {
               return LoginPage();
