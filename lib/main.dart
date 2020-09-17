@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:qrscan/qrscan.dart' as scanner;
 
 const SERVER_IP = 'https://n1lv4wjyc3.execute-api.eu-west-1.amazonaws.com/dev';
 void main() {
@@ -21,8 +23,8 @@ class ContainerBoxDecorationWithOpacity extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
             image: DecorationImage(
-          colorFilter:
-              ColorFilter.mode(Colors.white.withOpacity(0.9), BlendMode.screen),
+          colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.95), BlendMode.screen),
           image: Image.network(this.imagePath).image,
           fit: BoxFit.cover,
         )));
@@ -200,50 +202,88 @@ class MenuRoute extends StatelessWithDialogWidget {
     return null;
   }
 
+  Future scanQRCode() async {
+    try {
+      String barcode = await scanner.scan();
+      return barcode;
+      //setState(() => this.barcode = barcode);
+    } on PlatformException catch (e) {
+      if (e.code == scanner.CameraAccessDenied) {
+        return "L'app non ha i permessi per utilizzare la fotocamera";
+        // setState(() {
+        //   this.barcode = 'No camera permission!';
+        // });
+      } else {
+        return "Errore imprevisto: $e";
+        //setState(() => this.barcode = 'Unknown error: $e');
+      }
+    } on FormatException {
+      return "Niente da catturare";
+      // setState(() => this.barcode =
+      // 'Nothing captured.');
+    } catch (e) {
+      return "Errore imprevisto: $e";
+      //setState(() => this.barcode = 'Unknown error: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Menu"),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          var qrcode = await scanQRCode();
+          displayDialog(context, "Scansione codice", qrcode);
+        },
+        label: Text('Scansiona'),
+        icon: Icon(Icons.qr_code_scanner_outlined),
+        backgroundColor: Colors.red,
+      ),
       body: ContainerBoxDecorationWithOpacity(
           imagePath:
               'http://af-static.s3-website-eu-west-1.amazonaws.com/scudetto_BN.png',
-          child: Center(
-              child: Column(
-            children: <Widget>[
-              RaisedButton(
-                onPressed: () async {
-                  var jwt = this.response["token"];
-                  var response = await checkin(jwt);
-                  if (response != null) {
-                    this.response["token"] = response["token"];
-                    displayDialog(
-                        context, "Checkin effettuato", response["message"]);
-                  } else {
-                    displayDialog(
-                        context, "An Error Occurred", "Checkin failed");
-                  }
-                },
-                child: Text('CHECKIN'),
-              ),
-              RaisedButton(
-                onPressed: () async {
-                  var jwt = this.response["token"];
-                  var response = await checkout(jwt);
-                  if (response != null) {
-                    this.response["token"] = response["token"];
-                    displayDialog(
-                        context, "Checkout effettuato", response["message"]);
-                  } else {
-                    displayDialog(
-                        context, "An Error Occurred", "Checkout failed");
-                  }
-                },
-                child: Text('CHECKOUT'),
-              ),
-            ],
-          ))),
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Center(
+                    child: Column(
+                  children: <Widget>[
+                    RaisedButton(
+                      onPressed: () async {
+                        var jwt = this.response["token"];
+                        var response = await checkin(jwt);
+                        if (response != null) {
+                          this.response["token"] = response["token"];
+                          displayDialog(context, "Checkin effettuato",
+                              response["message"]);
+                        } else {
+                          displayDialog(
+                              context, "An Error Occurred", "Checkin failed");
+                        }
+                      },
+                      child: Text('CHECKIN'),
+                    ),
+                    RaisedButton(
+                      onPressed: () async {
+                        var jwt = this.response["token"];
+                        var response = await checkout(jwt);
+                        if (response != null) {
+                          this.response["token"] = response["token"];
+                          displayDialog(context, "Checkout effettuato",
+                              response["message"]);
+                        } else {
+                          displayDialog(
+                              context, "An Error Occurred", "Checkout failed");
+                        }
+                      },
+                      child: Text('CHECKOUT'),
+                    ),
+                  ],
+                ))
+              ])),
     );
   }
 }
