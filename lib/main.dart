@@ -9,6 +9,26 @@ void main() {
   runApp(MyApp());
 }
 
+class ContainerBoxDecorationWithOpacity extends StatelessWidget {
+  ContainerBoxDecorationWithOpacity({this.imagePath, this.child});
+  final String imagePath;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: this.child,
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+            image: DecorationImage(
+          colorFilter:
+              ColorFilter.mode(Colors.white.withOpacity(0.9), BlendMode.screen),
+          image: Image.network(this.imagePath).image,
+          fit: BoxFit.cover,
+        )));
+  }
+}
+
 class StatelessWithDialogWidget extends StatelessWidget {
   void displayDialog(context, title, text) => showDialog(
         context: context,
@@ -50,13 +70,11 @@ class LoginPage extends StatelessWithDialogWidget {
         appBar: AppBar(
           title: Text("Log In"),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
+        body: ContainerBoxDecorationWithOpacity(
+          imagePath:
+              'http://af-static.s3-website-eu-west-1.amazonaws.com/scudetto_BN.png',
           child: Column(
             children: <Widget>[
-              Image.network(
-                'http://af-static.s3-website-eu-west-1.amazonaws.com/logoAF.jpg',
-              ),
               TextField(
                 controller: _usernameController,
                 decoration: InputDecoration(labelText: 'Username'),
@@ -66,7 +84,7 @@ class LoginPage extends StatelessWithDialogWidget {
                 obscureText: true,
                 decoration: InputDecoration(labelText: 'Password'),
               ),
-              FlatButton(
+              RaisedButton(
                   onPressed: () async {
                     var username = _usernameController.text;
                     var password = _passwordController.text;
@@ -188,42 +206,44 @@ class MenuRoute extends StatelessWithDialogWidget {
       appBar: AppBar(
         title: Text("Menu"),
       ),
-      body: Center(
-          child: Column(
-        children: <Widget>[
-          Image.network(
-            'http://af-static.s3-website-eu-west-1.amazonaws.com/logoAF.jpg',
-          ),
-          RaisedButton(
-            onPressed: () async {
-              var jwt = this.response["token"];
-              var response = await checkin(jwt);
-              if (response != null) {
-                this.response["token"] = response["token"];
-                displayDialog(
-                    context, "Checkin effettuato", response["message"]);
-              } else {
-                displayDialog(context, "An Error Occurred", "Checkin failed");
-              }
-            },
-            child: Text('CHECKIN'),
-          ),
-          RaisedButton(
-            onPressed: () async {
-              var jwt = this.response["token"];
-              var response = await checkout(jwt);
-              if (response != null) {
-                this.response["token"] = response["token"];
-                displayDialog(
-                    context, "Checkout effettuato", response["message"]);
-              } else {
-                displayDialog(context, "An Error Occurred", "Checkout failed");
-              }
-            },
-            child: Text('CHECKOUT'),
-          ),
-        ],
-      )),
+      body: ContainerBoxDecorationWithOpacity(
+          imagePath:
+              'http://af-static.s3-website-eu-west-1.amazonaws.com/scudetto_BN.png',
+          child: Center(
+              child: Column(
+            children: <Widget>[
+              RaisedButton(
+                onPressed: () async {
+                  var jwt = this.response["token"];
+                  var response = await checkin(jwt);
+                  if (response != null) {
+                    this.response["token"] = response["token"];
+                    displayDialog(
+                        context, "Checkin effettuato", response["message"]);
+                  } else {
+                    displayDialog(
+                        context, "An Error Occurred", "Checkin failed");
+                  }
+                },
+                child: Text('CHECKIN'),
+              ),
+              RaisedButton(
+                onPressed: () async {
+                  var jwt = this.response["token"];
+                  var response = await checkout(jwt);
+                  if (response != null) {
+                    this.response["token"] = response["token"];
+                    displayDialog(
+                        context, "Checkout effettuato", response["message"]);
+                  } else {
+                    displayDialog(
+                        context, "An Error Occurred", "Checkout failed");
+                  }
+                },
+                child: Text('CHECKOUT'),
+              ),
+            ],
+          ))),
     );
   }
 }
