@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:qrscan/qrscan.dart' as scanner;
 
 const SERVER_IP = 'https://n1lv4wjyc3.execute-api.eu-west-1.amazonaws.com/dev';
+const STATIC_ENDPOINT = 'https://d30supjcwzojra.cloudfront.net';
 void main() {
   runApp(MyApp());
 }
@@ -100,8 +101,7 @@ class LoginPage extends StatelessWithDialogWidget {
           title: Text("Check@pp"),
         ),
         body: ContainerBoxDecorationWithOpacity(
-          imagePath:
-              'http://af-static.s3-website-eu-west-1.amazonaws.com/scudetto_BN.png',
+          imagePath: STATIC_ENDPOINT + '/scudetto_BN.png',
           child: Column(
             children: <Widget>[
               TextField(
@@ -298,8 +298,7 @@ class MenuRoute extends StatelessWithDialogWidget {
         backgroundColor: Colors.red,
       ),
       body: ContainerBoxDecorationWithOpacity(
-          imagePath:
-              'http://af-static.s3-website-eu-west-1.amazonaws.com/scudetto_BN.png',
+          imagePath: STATIC_ENDPOINT + '/scudetto_BN.png',
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
