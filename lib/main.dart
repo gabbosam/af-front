@@ -156,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                       if (response != null) {
                         window.localStorage["refreshToken"] =
                             response["refresh_token"];
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                               builder: (context) => MenuRoute(response)),
@@ -268,7 +268,7 @@ class _MyAppState extends State<MyApp> {
 class MenuRoute extends StatelessWithDialogWidget {
   MenuRoute(this.response);
   final Map<String, dynamic> response;
-
+  String choice;
   Future<Map> checkin(String jwt) async {
     var res = await http.post(
       "$SERVER_IP/check-in",
@@ -287,6 +287,21 @@ class MenuRoute extends StatelessWithDialogWidget {
   Future<Map> checkout(String jwt) async {
     var res = await http.post(
       "$SERVER_IP/check-out",
+      headers: <String, String>{
+        HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
+        'x-api-key': 'xddfuheeLr5ne39P10y4z8pUx6unUweP8xxKjOe5'
+      },
+    ).catchError((error) {
+      print(error.toString());
+    });
+    if (res.statusCode == 200) return json.decode(res.body);
+    return null;
+  }
+
+  Future<Map> logout(String jwt) async {
+    var res = await http.post(
+      "$SERVER_IP/logout",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
@@ -328,7 +343,35 @@ class MenuRoute extends StatelessWithDialogWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Menu"),
+        title: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [Text("Atletico Fabriano ASD")]),
+        actions: [
+          PopupMenuButton(
+            onSelected: (value) async {
+              //print the selected option
+              switch (value) {
+                case "logout":
+                  var jwt = this.response["token"];
+                  var response = await logout(jwt);
+                  window.localStorage.remove("hasCheckin");
+                  window.localStorage.remove("refreshToken");
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  value: "logout",
+                  child: Text("Esci"),
+                )
+              ];
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
