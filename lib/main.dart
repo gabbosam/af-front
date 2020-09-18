@@ -70,9 +70,20 @@ class StatefulWithDialogWidget extends StatefulWidget {
   }
 }
 
-class LoginPage extends StatelessWithDialogWidget {
+class LoginPage extends StatefulWithDialogWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  void displayDialog(context, title, text) => showDialog(
+        context: context,
+        builder: (context) =>
+            AlertDialog(title: Text(title), content: Text(text)),
+      );
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _rememberLogin = false;
 
   Future<Map> attemptLogIn(String username, String password) async {
     var res = await http
@@ -113,25 +124,50 @@ class LoginPage extends StatelessWithDialogWidget {
                 obscureText: true,
                 decoration: InputDecoration(labelText: 'Password'),
               ),
-              RaisedButton(
-                  onPressed: () async {
-                    var username = _usernameController.text;
-                    var password = _passwordController.text;
-                    var response = await attemptLogIn(username, password);
-                    if (response != null) {
-                      window.localStorage["refreshToken"] =
-                          response["refresh_token"];
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MenuRoute(response)),
-                      );
-                    } else {
-                      displayDialog(context, "An Error Occurred",
-                          "No account was found matching that username and password");
-                    }
-                  },
-                  child: Text("Log In")),
+              Row(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Checkbox(
+                        value: _rememberLogin,
+                        onChanged: (bool newValue) {
+                          var value = newValue ? "1" : "0";
+                          window.localStorage["remember"] = value;
+                          setState(() {
+                            _rememberLogin = newValue;
+                          });
+                        }),
+                  ),
+                  Text("Ricordami"),
+                ],
+              ),
+              SizedBox(
+                height: 50.0,
+              ),
+              SizedBox(
+                width: 200.0,
+                height: 60.0,
+                child: RaisedButton(
+                    padding: EdgeInsets.all(10.0),
+                    onPressed: () async {
+                      var username = _usernameController.text;
+                      var password = _passwordController.text;
+                      var response = await attemptLogIn(username, password);
+                      if (response != null) {
+                        window.localStorage["refreshToken"] =
+                            response["refresh_token"];
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MenuRoute(response)),
+                        );
+                      } else {
+                        displayDialog(context, "An Error Occurred",
+                            "No account was found matching that username and password");
+                      }
+                    },
+                    child: Text("Log In", style: TextStyle(fontSize: 20))),
+              )
             ],
           ),
         ));
@@ -163,15 +199,21 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Future<Map> get jwtOrEmpty async {
-    if (window.localStorage.containsKey("refreshToken")) {
-      var response = await refreshToken(window.localStorage["refreshToken"]);
-      if (response != null) {
-        window.localStorage["refreshToken"] = response["refresh_token"];
-        return response;
+    if (window.localStorage.containsKey("remember") &&
+        window.localStorage["remember"] == "1") {
+      if (window.localStorage.containsKey("refreshToken")) {
+        var response = await refreshToken(window.localStorage["refreshToken"]);
+        if (response != null) {
+          window.localStorage["refreshToken"] = response["refresh_token"];
+          return response;
+        } else {
+          return null;
+        }
       } else {
         return null;
       }
     } else {
+      window.localStorage["remember"] = "0";
       return null;
     }
   }
@@ -290,8 +332,9 @@ class MenuRoute extends StatelessWithDialogWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          var qrcode = await scanQRCode();
-          displayDialog(context, "Scansione codice", qrcode);
+          //var qrcode = await scanQRCode();
+          displayDialog(
+              context, "Scansione codice", "Funzionalità ancora non attiva");
         },
         label: Text('Scansiona'),
         icon: Icon(Icons.qr_code_scanner_outlined),
@@ -305,36 +348,51 @@ class MenuRoute extends StatelessWithDialogWidget {
                 Center(
                     child: Column(
                   children: <Widget>[
-                    RaisedButton(
-                      onPressed: () async {
-                        var jwt = this.response["token"];
-                        var response = await checkin(jwt);
-                        if (response != null) {
-                          this.response["token"] = response["token"];
-                          displayDialog(context, "Checkin effettuato",
-                              response["message"]);
-                        } else {
-                          displayDialog(
-                              context, "An Error Occurred", "Checkin failed");
-                        }
-                      },
-                      child: Text('CHECKIN'),
-                    ),
-                    RaisedButton(
-                      onPressed: () async {
-                        var jwt = this.response["token"];
-                        var response = await checkout(jwt);
-                        if (response != null) {
-                          this.response["token"] = response["token"];
-                          displayDialog(context, "Checkout effettuato",
-                              response["message"]);
-                        } else {
-                          displayDialog(
-                              context, "An Error Occurred", "Checkout failed");
-                        }
-                      },
-                      child: Text('CHECKOUT'),
-                    ),
+                    const SizedBox(height: 50),
+                    SizedBox(
+                        width: 200.0,
+                        height: 60.0,
+                        child: RaisedButton(
+                          onPressed: () async {
+                            var jwt = this.response["token"];
+                            var response = await checkin(jwt);
+                            if (response != null) {
+                              this.response["token"] = response["token"];
+                              window.localStorage["hasCheckin"] = "1";
+                              displayDialog(context, "Check in effettuato",
+                                  "L'ingresso è stato registrato correttamente");
+                            } else {
+                              displayDialog(context, "An Error Occurred",
+                                  "Checkin failed");
+                            }
+                          },
+                          child:
+                              Text('INGRESSO', style: TextStyle(fontSize: 20)),
+                        )),
+                    const SizedBox(height: 50),
+                    SizedBox(
+                        width: 200.0,
+                        height: 60.0,
+                        child: RaisedButton(
+                          onPressed: () async {
+                            if (window.localStorage.containsKey("hasCheckin")) {
+                              var jwt = this.response["token"];
+                              var response = await checkout(jwt);
+                              if (response != null) {
+                                this.response["token"] = response["token"];
+                                displayDialog(context, "Check out effettuato",
+                                    "L'uscita è stata registrata correttamente");
+                              } else {
+                                displayDialog(context, "An Error Occurred",
+                                    "Checkout failed");
+                              }
+                            } else {
+                              displayDialog(context, "Uscita",
+                                  "Prima devi effettuare l'ingresso premendo sul tasto INGRESSO");
+                            }
+                          },
+                          child: Text('USCITA', style: TextStyle(fontSize: 20)),
+                        )),
                   ],
                 ))
               ])),
