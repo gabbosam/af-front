@@ -403,11 +403,14 @@ class MenuRoute extends StatelessWithDialogWidget {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
-            children: [Text("Atletico Fabriano ASD")]),
+            children: [
+              Text("Atletico Fabriano ASD", style: TextStyle(fontSize: 16))
+            ]),
         actions: [
           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            Text(userInfo["sub"], style: TextStyle(fontSize: 16.0)),
+            Text(userInfo["sub"], style: TextStyle(fontSize: 14.0)),
           ]),
           PopupMenuButton(
             onSelected: (value) async {
@@ -545,7 +548,7 @@ class MenuRoute extends StatelessWithDialogWidget {
                                     children: [
                                       Icon(Icons.print),
                                       Text('STAMPA AUTOCERTIFICAZIONE',
-                                          style: TextStyle(fontSize: 20)),
+                                          style: TextStyle(fontSize: 18)),
                                     ]),
                               ]))),
                   const SizedBox(height: 50),

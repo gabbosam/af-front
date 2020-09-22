@@ -134,7 +134,7 @@ class _SuveyPageState extends State<SurveyPage> {
                             child: Row(children: [
                               Icon(Icons.help),
                               Text(
-                                "Se non hai riscontrato nessun sintomo\nnon modificare nulla e salva l'autocertificazione",
+                                "Se non hai riscontrato nessun sintomo\nnon modificare nulla e\nsalva l'autocertificazione",
                               ),
                             ]))
                       ],
@@ -320,7 +320,7 @@ class _SuveyPageState extends State<SurveyPage> {
                               padding: EdgeInsets.all(5.0),
                               child: Row(children: [
                                 Text(
-                                    "CONTATTI con casi COVID19 accertati (tampone positivo)"),
+                                    "CONTATTI con casi\nCOVID19 accertati\n(tampone positivo)"),
                                 Switch(
                                   value: covid,
                                   onChanged: (bool newValue) {
@@ -346,7 +346,8 @@ class _SuveyPageState extends State<SurveyPage> {
                           Padding(
                               padding: EdgeInsets.all(5.0),
                               child: Row(children: [
-                                Text("CONTATTI con familiari di casi sospetti"),
+                                Text(
+                                    "CONTATTI con familiari\ndi casi sospetti"),
                                 Switch(
                                   value: familiari,
                                   onChanged: (bool newValue) {
@@ -360,7 +361,7 @@ class _SuveyPageState extends State<SurveyPage> {
                               padding: EdgeInsets.all(5.0),
                               child: Row(children: [
                                 Text(
-                                    "CONVIVENTI con febbre o sintomi influenzali (no tampone)"),
+                                    "CONVIVENTI con febbre\no sintomi influenzali\n(no tampone)"),
                                 Switch(
                                   value: conviventi,
                                   onChanged: (bool newValue) {
@@ -374,7 +375,7 @@ class _SuveyPageState extends State<SurveyPage> {
                               padding: EdgeInsets.all(5.0),
                               child: Row(children: [
                                 Text(
-                                    "CONTATTI con febbre o sintomi influenzali (no tampone)"),
+                                    "CONTATTI con febbre\no sintomi influenzali\n(no tampone)"),
                                 Switch(
                                   value: contatti,
                                   onChanged: (bool newValue) {
