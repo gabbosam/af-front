@@ -501,7 +501,7 @@ class MenuRoute extends StatelessWithDialogWidget {
                       child: RaisedButton(
                           color: _needSurvey
                               ? Colors.red
-                              : _dayLeft[2] <= 14
+                              : _dayLeft[2] <= 5
                                   ? Colors.orange
                                   : Colors.green,
                           onPressed: () async {
