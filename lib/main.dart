@@ -1,6 +1,7 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html';
 import 'dart:io';
+import 'dart:js' as js;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,7 @@ import 'const.dart';
 import 'user_profile.dart';
 import 'change_password.dart';
 import 'privacy_page.dart';
+import 'survey.dart';
 import 'utils.dart';
 
 Map<String, dynamic> decodeJWTPayload(String jwt) {
@@ -274,7 +276,6 @@ class _MyAppState extends State<MyApp> {
 class MenuRoute extends StatelessWithDialogWidget {
   MenuRoute(this.response);
   final Map<String, dynamic> response;
-  Map<String, dynamic> profile;
 
   Future<Map> checkin(String jwt) async {
     var res = await http.post(
@@ -336,6 +337,21 @@ class MenuRoute extends StatelessWithDialogWidget {
     return null;
   }
 
+  Future<Map> printSurvey(String jwt) async {
+    var res = await http.get(
+      "$SERVER_IP/pdf-gen",
+      headers: <String, String>{
+        HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
+        'x-api-key': APIKEY
+      },
+    ).catchError((error) {
+      print(error.toString());
+    });
+    if (res.statusCode == 200) return json.decode(res.body);
+    return null;
+  }
+
   Future scanQRCode() async {
     try {
       String barcode = await scanner.scan();
@@ -365,6 +381,25 @@ class MenuRoute extends StatelessWithDialogWidget {
   Widget build(BuildContext context) {
     var userInfo = json.decode(ascii.decode(
         base64.decode(base64.normalize(this.response["token"].split(".")[1]))));
+
+    var _needSurvey = needSurvey(userInfo["date_submit_survey"] ?? null);
+    var _dayLeft = surveyDayLeft(userInfo["date_submit_survey"] ?? null);
+    var _dayLeftMsg = _needSurvey
+        ? (_dayLeft.isEmpty
+            ? "Mai compilata"
+            : "Compilata il " +
+                userInfo["date_submit_survey"] +
+                " - Scaduta da " +
+                _dayLeft[2].abs().toString() +
+                " giorni")
+        : "Compilata il " +
+            userInfo["date_submit_survey"] +
+            " - Scade tra " +
+            _dayLeft[2].abs().toString() +
+            " giorni";
+
+    var raisedButtonSize = {"width": 360.0, "height": 60.0};
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -390,20 +425,20 @@ class MenuRoute extends StatelessWithDialogWidget {
                   break;
                 case "me":
                   if (!window.localStorage.containsKey("hasProfileData") ||
-                      this.profile == null) {
+                      !this.response.containsKey("profile")) {
                     //print("GET PROFILE FROM API");
                     var jwt = this.response["token"];
                     var response = await me(jwt);
-                    this.profile = response["profile"];
+                    this.response["profile"] = response["profile"];
                   }
-                  if (this.profile != null) {
+                  if (this.response["profile"] != null) {
                     window.localStorage["hasProfileData"] = "1";
                     //UserProfile(response).show();
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                UserProfile(this.response, this.profile)));
+                            builder: (context) => UserProfile(
+                                this.response, this.response["profile"])));
                   } else {
                     displayDialog(context, "Errore",
                         "Impossibile recuperare le informazioni dell'utente");
@@ -446,7 +481,7 @@ class MenuRoute extends StatelessWithDialogWidget {
         },
         label: Text('Scansiona'),
         icon: Icon(Icons.qr_code_scanner_outlined),
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.red[100],
       ),
       body: Builder(builder: (BuildContext context) {
         return ContainerBoxDecorationWithOpacity(
@@ -457,12 +492,73 @@ class MenuRoute extends StatelessWithDialogWidget {
               Center(
                   child: Column(
                 children: <Widget>[
+                  SizedBox(
+                      width: raisedButtonSize["width"],
+                      height: raisedButtonSize["height"],
+                      child: RaisedButton(
+                          color: _needSurvey ? Colors.red : Colors.green,
+                          onPressed: () async {
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => SurveyPage(
+                                          this.response,
+                                        )));
+                          },
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(_needSurvey
+                                          ? Icons.error_outline
+                                          : Icons.done_outline),
+                                      Text('AUTOCERTIFICAZIONE',
+                                          style: TextStyle(fontSize: 20)),
+                                    ]),
+                                Text(_dayLeftMsg,
+                                    style: TextStyle(fontSize: 12)),
+                              ]))),
                   const SizedBox(height: 50),
                   SizedBox(
-                      width: 200.0,
-                      height: 60.0,
+                      width: raisedButtonSize["width"],
+                      height: raisedButtonSize["height"],
+                      child: RaisedButton(
+                          onPressed: () async {
+                            if (!_needSurvey) {
+                              var jwt = this.response["token"];
+                              Scaffold.of(context).showSnackBar(doneSnack(
+                                  "Richiesta di stampa... attendere"));
+                              var response = await printSurvey(jwt);
+                              if (response != null) {
+                                js.context
+                                    .callMethod("open", [response["url"]]);
+                              }
+                            }
+                          },
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.print),
+                                      Text('STAMPA AUTOCERTIFICAZIONE',
+                                          style: TextStyle(fontSize: 20)),
+                                    ]),
+                              ]))),
+                  const SizedBox(height: 50),
+                  SizedBox(
+                      width: raisedButtonSize["width"],
+                      height: raisedButtonSize["height"],
                       child: RaisedButton(
                         onPressed: () async {
+                          if (_needSurvey) {
+                            displayDialog(context, "Ingresso",
+                                "Per poter effettuare l'ingresso devi compilare l'autocertificazione");
+                            return;
+                          }
                           var jwt = this.response["token"];
                           var response = await checkin(jwt);
                           if (response != null) {
@@ -477,12 +573,17 @@ class MenuRoute extends StatelessWithDialogWidget {
                                 "Registrazione accesso fallito, riprovare"));
                           }
                         },
-                        child: Text('INGRESSO', style: TextStyle(fontSize: 20)),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.meeting_room),
+                              Text('INGRESSO', style: TextStyle(fontSize: 20))
+                            ]),
                       )),
                   const SizedBox(height: 50),
                   SizedBox(
-                      width: 200.0,
-                      height: 60.0,
+                      width: raisedButtonSize["width"],
+                      height: raisedButtonSize["height"],
                       child: RaisedButton(
                         onPressed: () async {
                           if (window.localStorage.containsKey("hasCheckin")) {
@@ -503,7 +604,12 @@ class MenuRoute extends StatelessWithDialogWidget {
                                 "Prima devi effettuare l'ingresso premendo sul tasto INGRESSO");
                           }
                         },
-                        child: Text('USCITA', style: TextStyle(fontSize: 20)),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.exit_to_app),
+                              Text('USCITA', style: TextStyle(fontSize: 20))
+                            ]),
                       ))
                 ],
               ))
