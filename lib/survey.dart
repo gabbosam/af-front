@@ -38,6 +38,8 @@ class _SuveyPageState extends State<SurveyPage> {
   bool conviventi = false;
   bool contatti = false;
 
+  bool showBanner = true;
+
   Future<Map> addSurvey(String jwt) async {
     var res = await http
         .post(
@@ -103,10 +105,12 @@ class _SuveyPageState extends State<SurveyPage> {
               child: Icon(Icons.save),
               onPressed: () async {
                 var jwt = this.response["token"];
+                Scaffold.of(context).showSnackBar(
+                    doneSnack('Salvataggio in corso ...attendere'));
                 var response = await addSurvey(jwt);
                 if (response != null) {
-                  Scaffold.of(context).showSnackBar(
-                      doneSnack('Autocertificazione salvata correttamente'));
+                  // Scaffold.of(context).showSnackBar(
+                  //     doneSnack('Autocertificazione salvata correttamente'));
 
                   Navigator.pushReplacement(
                       context,
@@ -126,19 +130,24 @@ class _SuveyPageState extends State<SurveyPage> {
                   shrinkWrap: true,
                   padding: EdgeInsets.all(5.0),
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                            padding: EdgeInsets.all(5.0),
-                            child: Row(children: [
-                              Icon(Icons.help),
-                              Text(
-                                "Se non hai riscontrato nessun sintomo\nnon modificare nulla e\nsalva l'autocertificazione",
-                              ),
-                            ]))
-                      ],
-                    ),
+                    if (showBanner)
+                      MaterialBanner(
+                          contentTextStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                          backgroundColor: Colors.amber[200],
+                          forceActionsBelow: true,
+                          actions: [
+                            FlatButton(
+                                onPressed: () {
+                                  setState(() => showBanner = false);
+                                },
+                                child: Text("HO CAPITO"))
+                          ],
+                          content: Text(
+                            "Se non hai riscontrato nessun sintomo non modificare nulla e salva l'autocertificazione",
+                          )),
                     Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

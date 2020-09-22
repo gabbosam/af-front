@@ -25,6 +25,8 @@ class _UserProfileState extends State<UserProfile> {
 
   bool editMode = false;
   TextEditingController email = TextEditingController();
+  TextEditingController birth = TextEditingController();
+  TextEditingController townOfBirth = TextEditingController();
   TextEditingController address = TextEditingController();
   TextEditingController parent = TextEditingController();
   TextEditingController parentBirth = TextEditingController();
@@ -42,8 +44,10 @@ class _UserProfileState extends State<UserProfile> {
       },
       body: jsonEncode({
         "profile": {
-          "email": email.text,
+          "birth": birth.text,
+          "town_of_birth": townOfBirth.text,
           "address": address.text,
+          "email": email.text,
           "parent": parent.text,
           "parent_birth_date": parentBirth.text,
           "parent_town_of_birth": parentTownOfBirth.text,
@@ -137,7 +141,7 @@ class _UserProfileState extends State<UserProfile> {
                                 style: TextStyle(fontSize: 16.0),
                                 decoration: InputDecoration(
                                     labelText: "Utente",
-                                    icon: Icon(Icons.edit_off))),
+                                    icon: Icon(Icons.not_interested))),
                           ),
                           Padding(
                             padding: EdgeInsets.all(10.0),
@@ -147,7 +151,7 @@ class _UserProfileState extends State<UserProfile> {
                                 style: TextStyle(fontSize: 16.0),
                                 decoration: InputDecoration(
                                     labelText: "Nome",
-                                    icon: Icon(Icons.edit_off))),
+                                    icon: Icon(Icons.not_interested))),
                           ),
                           Padding(
                               padding: EdgeInsets.all(10.0),
@@ -157,27 +161,32 @@ class _UserProfileState extends State<UserProfile> {
                                   style: TextStyle(fontSize: 16.0),
                                   decoration: InputDecoration(
                                       labelText: "Cognome",
-                                      icon: Icon(Icons.edit_off)))),
+                                      icon: Icon(Icons.not_interested)))),
                           Padding(
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
-                                  initialValue: this.profile["birth"] ?? "",
-                                  enabled: false,
+                                  controller: birth
+                                    ..text = this.profile["birth"],
+                                  enabled: editMode,
                                   style: TextStyle(fontSize: 16.0),
                                   decoration: InputDecoration(
                                       labelText: "Data di nascita",
                                       hintText: "gg/mm/aaaa",
-                                      icon: Icon(Icons.edit_off)))),
+                                      icon: Icon(editMode
+                                          ? Icons.edit
+                                          : Icons.not_interested)))),
                           Padding(
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
-                                  initialValue:
-                                      this.profile["town_of_birth"] ?? "",
-                                  enabled: false,
+                                  controller: townOfBirth
+                                    ..text = this.profile["town_of_birth"],
+                                  enabled: editMode,
                                   style: TextStyle(fontSize: 16.0),
                                   decoration: InputDecoration(
                                       labelText: "Nato a",
-                                      icon: Icon(Icons.edit_off)))),
+                                      icon: Icon(editMode
+                                          ? Icons.edit
+                                          : Icons.not_interested)))),
                           Padding(
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
@@ -189,7 +198,7 @@ class _UserProfileState extends State<UserProfile> {
                                       labelText: "Residente in",
                                       icon: Icon(editMode
                                           ? Icons.edit
-                                          : Icons.edit_off)))),
+                                          : Icons.not_interested)))),
                           Padding(
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
@@ -202,7 +211,7 @@ class _UserProfileState extends State<UserProfile> {
                                       labelText: "Email",
                                       icon: Icon(editMode
                                           ? Icons.edit
-                                          : Icons.edit_off)))),
+                                          : Icons.not_interested)))),
                           Padding(
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
@@ -211,7 +220,7 @@ class _UserProfileState extends State<UserProfile> {
                                   style: TextStyle(fontSize: 16.0),
                                   decoration: InputDecoration(
                                       labelText: "Ruolo",
-                                      icon: Icon(Icons.edit_off)))),
+                                      icon: Icon(Icons.not_interested)))),
                           if (!_isAdult)
                             const SizedBox(
                               height: 20.0,
@@ -240,7 +249,7 @@ class _UserProfileState extends State<UserProfile> {
                                         labelText: "Nome",
                                         icon: Icon(editMode
                                             ? Icons.edit
-                                            : Icons.edit_off)))),
+                                            : Icons.not_interested)))),
                           if (!_isAdult)
                             Padding(
                                 padding: EdgeInsets.all(10.0),
@@ -255,7 +264,7 @@ class _UserProfileState extends State<UserProfile> {
                                         hintText: "gg/mm/aaaa",
                                         icon: Icon(editMode
                                             ? Icons.edit
-                                            : Icons.edit_off)))),
+                                            : Icons.not_interested)))),
                           if (!_isAdult)
                             Padding(
                                 padding: EdgeInsets.all(10.0),
@@ -269,7 +278,7 @@ class _UserProfileState extends State<UserProfile> {
                                         labelText: "Nato a",
                                         icon: Icon(editMode
                                             ? Icons.edit
-                                            : Icons.edit_off)))),
+                                            : Icons.not_interested)))),
                           if (!_isAdult)
                             Padding(
                                 padding: EdgeInsets.all(10.0),
@@ -282,7 +291,7 @@ class _UserProfileState extends State<UserProfile> {
                                         labelText: "Residente in",
                                         icon: Icon(editMode
                                             ? Icons.edit
-                                            : Icons.edit_off)))),
+                                            : Icons.not_interested)))),
                         ])
                   ])),
         ));
