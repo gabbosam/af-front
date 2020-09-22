@@ -499,7 +499,11 @@ class MenuRoute extends StatelessWithDialogWidget {
                       width: raisedButtonSize["width"],
                       height: raisedButtonSize["height"],
                       child: RaisedButton(
-                          color: _needSurvey ? Colors.red : Colors.green,
+                          color: _needSurvey
+                              ? Colors.red
+                              : _dayLeft[2] <= 14
+                                  ? Colors.orange
+                                  : Colors.green,
                           onPressed: () async {
                             Navigator.pushReplacement(
                                 context,

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+bool isNullOrEmpty(String value) {
+  return value == null || value.isEmpty;
+}
+
 bool isAdult(String birthDate) {
   DateTime now = DateTime.now();
   List<String> parts = birthDate.split("/");
@@ -12,7 +16,7 @@ bool isAdult(String birthDate) {
 }
 
 List<int> surveyDayLeft(String lastEdit) {
-  if (lastEdit == null) return [];
+  if (isNullOrEmpty(lastEdit)) return [];
   DateTime now = DateTime.now();
   List<String> parts = lastEdit.split("/");
   DateTime lastEditDate = DateTime(
