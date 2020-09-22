@@ -32,6 +32,7 @@ class _UserProfileState extends State<UserProfile> {
   TextEditingController parentBirth = TextEditingController();
   TextEditingController parentTownOfBirth = TextEditingController();
   TextEditingController parentAddress = TextEditingController();
+  TextEditingController sportMedicalExam = TextEditingController();
 
   Future<Map> updateProfile(String jwt) async {
     var res = await http
@@ -51,7 +52,8 @@ class _UserProfileState extends State<UserProfile> {
           "parent": parent.text,
           "parent_birth_date": parentBirth.text,
           "parent_town_of_birth": parentTownOfBirth.text,
-          "parent_address": parentAddress.text
+          "parent_address": parentAddress.text,
+          "sport_medical_exam": sportMedicalExam.text
         }
       }),
     )
@@ -136,7 +138,7 @@ class _UserProfileState extends State<UserProfile> {
                           Padding(
                             padding: EdgeInsets.all(10.0),
                             child: TextFormField(
-                                initialValue: this.profile["login"] ?? "",
+                                initialValue: this.profile["login"],
                                 enabled: false,
                                 style: TextStyle(fontSize: 16.0),
                                 decoration: InputDecoration(
@@ -146,7 +148,7 @@ class _UserProfileState extends State<UserProfile> {
                           Padding(
                             padding: EdgeInsets.all(10.0),
                             child: TextFormField(
-                                initialValue: this.profile["name"] ?? "",
+                                initialValue: this.profile["name"],
                                 enabled: false,
                                 style: TextStyle(fontSize: 16.0),
                                 decoration: InputDecoration(
@@ -156,7 +158,7 @@ class _UserProfileState extends State<UserProfile> {
                           Padding(
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
-                                  initialValue: this.profile["surname"] ?? "",
+                                  initialValue: this.profile["surname"],
                                   enabled: false,
                                   style: TextStyle(fontSize: 16.0),
                                   decoration: InputDecoration(
@@ -179,7 +181,8 @@ class _UserProfileState extends State<UserProfile> {
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
                                   controller: townOfBirth
-                                    ..text = this.profile["town_of_birth"],
+                                    ..text =
+                                        this.profile["town_of_birth"] ?? "",
                                   enabled: editMode,
                                   style: TextStyle(fontSize: 16.0),
                                   decoration: InputDecoration(
@@ -191,7 +194,7 @@ class _UserProfileState extends State<UserProfile> {
                               padding: EdgeInsets.all(10.0),
                               child: TextFormField(
                                   controller: address
-                                    ..text = this.profile["address"],
+                                    ..text = this.profile["address"] ?? "",
                                   enabled: editMode,
                                   style: TextStyle(fontSize: 16.0),
                                   decoration: InputDecoration(
@@ -206,9 +209,24 @@ class _UserProfileState extends State<UserProfile> {
                                   style: TextStyle(fontSize: 16.0),
                                   keyboardType: TextInputType.emailAddress,
                                   controller: email
-                                    ..text = this.profile["email"],
+                                    ..text = this.profile["email"] ?? "",
                                   decoration: InputDecoration(
                                       labelText: "Email",
+                                      icon: Icon(editMode
+                                          ? Icons.edit
+                                          : Icons.not_interested)))),
+                          Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: TextFormField(
+                                  enabled: editMode,
+                                  style: TextStyle(fontSize: 16.0),
+                                  controller: sportMedicalExam
+                                    ..text =
+                                        this.profile["sport_medical_exam"] ??
+                                            "",
+                                  decoration: InputDecoration(
+                                      labelText: "Scadenza visita medica",
+                                      hintText: "gg/mm/aaaa",
                                       icon: Icon(editMode
                                           ? Icons.edit
                                           : Icons.not_interested)))),
@@ -243,7 +261,7 @@ class _UserProfileState extends State<UserProfile> {
                                 child: TextFormField(
                                     enabled: editMode,
                                     controller: parent
-                                      ..text = this.profile["parent"],
+                                      ..text = this.profile["parent"] ?? "",
                                     style: TextStyle(fontSize: 16.0),
                                     decoration: InputDecoration(
                                         labelText: "Nome",
@@ -258,7 +276,8 @@ class _UserProfileState extends State<UserProfile> {
                                     style: TextStyle(fontSize: 16.0),
                                     controller: parentBirth
                                       ..text =
-                                          this.profile["parent_birth_date"],
+                                          this.profile["parent_birth_date"] ??
+                                              "",
                                     decoration: InputDecoration(
                                         labelText: "Data di nascita",
                                         hintText: "gg/mm/aaaa",
@@ -272,8 +291,9 @@ class _UserProfileState extends State<UserProfile> {
                                     enabled: editMode,
                                     style: TextStyle(fontSize: 16.0),
                                     controller: parentTownOfBirth
-                                      ..text =
-                                          this.profile["parent_town_of_birth"],
+                                      ..text = this.profile[
+                                              "parent_town_of_birth"] ??
+                                          "",
                                     decoration: InputDecoration(
                                         labelText: "Nato a",
                                         icon: Icon(editMode
@@ -286,7 +306,8 @@ class _UserProfileState extends State<UserProfile> {
                                     enabled: editMode,
                                     style: TextStyle(fontSize: 16.0),
                                     controller: parentAddress
-                                      ..text = this.profile["parent_address"],
+                                      ..text =
+                                          this.profile["parent_address"] ?? "",
                                     decoration: InputDecoration(
                                         labelText: "Residente in",
                                         icon: Icon(editMode
