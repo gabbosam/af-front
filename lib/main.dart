@@ -156,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: 50.0,
               ),
               SizedBox(
-                width: 200.0,
+                width: 250.0,
                 height: 60.0,
                 child: RaisedButton(
                     padding: EdgeInsets.all(10.0),
@@ -188,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
                             "Username o password errate");
                       }
                     },
-                    child: Text("ACCEDI", style: TextStyle(fontSize: 20))),
+                    child: Text("ENTRA", style: TextStyle(fontSize: 20))),
               )
             ],
           ),
