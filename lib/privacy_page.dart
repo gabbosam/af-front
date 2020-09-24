@@ -70,6 +70,7 @@ class PrivacyPage extends StatelessWithDialogWidget {
                       var res = await updatePrivacy(jwt, 1);
                       if (res != null) {
                         //Navigator.pop(context);
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(

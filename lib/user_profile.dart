@@ -93,6 +93,19 @@ class _UserProfileState extends State<UserProfile> {
           heroTag: null,
           onPressed: () async {
             var jwt = this.response["token"];
+            setState(() {
+              this.profile.addAll({
+                "birth": birth.text,
+                "town_of_birth": townOfBirth.text,
+                "address": address.text,
+                "email": email.text,
+                "parent": parent.text,
+                "parent_birth_date": parentBirth.text,
+                "parent_town_of_birth": parentTownOfBirth.text,
+                "parent_address": parentAddress.text,
+                "sport_medical_exam": sportMedicalExam.text
+              });
+            });
             var res = await updateProfile(jwt);
             if (res != null) {
               window.localStorage.remove("hasProfileData");

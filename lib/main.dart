@@ -171,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                         var payload = decodeJWTPayload(response["token"]);
                         var privacy = payload["privacy"];
                         if (privacy == 0) {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => PrivacyPage(response)),
@@ -211,6 +211,7 @@ class _MyAppState extends State<MyApp> {
           window.localStorage["refreshToken"] = response["refresh_token"];
           return response;
         } else {
+          window.localStorage["remember"] = "0";
           return null;
         }
       } else {
@@ -420,6 +421,7 @@ class MenuRoute extends StatelessWithDialogWidget {
                   var jwt = this.response["token"];
                   await logout(jwt);
                   window.localStorage.remove("hasCheckin");
+                  window.localStorage.remove("hasProfileData");
                   window.localStorage.remove("refreshToken");
                   Navigator.pushReplacement(
                     context,
@@ -505,7 +507,7 @@ class MenuRoute extends StatelessWithDialogWidget {
                                   ? Colors.orange
                                   : Colors.green,
                           onPressed: () async {
-                            Navigator.pushReplacement(
+                            Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => SurveyPage(

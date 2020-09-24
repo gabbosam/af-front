@@ -87,6 +87,7 @@ class _SuveyPageState extends State<SurveyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
             IconButton(
               icon: Icon(Icons.arrow_back_ios),
