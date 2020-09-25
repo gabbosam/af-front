@@ -25,11 +25,11 @@ class ChangePasswordPage extends StatelessWithDialogWidget {
   Future<Map> updatePassword(String jwt, String newpassword) async {
     var res = await http
         .post(
-      "$SERVER_IP/update-me",
+      "$serverIp/update-me",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
       body: jsonEncode({"newpassword": newpassword}),
     )
