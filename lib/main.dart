@@ -35,7 +35,7 @@ class ContainerBoxDecorationWithOpacity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        child: this.child,
+        child: Scaffold(backgroundColor: Colors.transparent, body: this.child),
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
             image: DecorationImage(
