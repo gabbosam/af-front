@@ -37,11 +37,11 @@ class _UserProfileState extends State<UserProfile> {
   Future<Map> updateProfile(String jwt) async {
     var res = await http
         .post(
-      "$SERVER_IP/update-me",
+      "$serverIp/update-me",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
       body: jsonEncode({
         "profile": {
@@ -277,7 +277,7 @@ class _UserProfileState extends State<UserProfile> {
                                       ..text = this.profile["parent"] ?? "",
                                     style: TextStyle(fontSize: 16.0),
                                     decoration: InputDecoration(
-                                        labelText: "Nome",
+                                        labelText: "Nome e Cognome",
                                         icon: Icon(editMode
                                             ? Icons.edit
                                             : Icons.not_interested)))),

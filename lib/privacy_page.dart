@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'const.dart';
 import 'main.dart';
+import 'utils.dart';
 
 class PrivacyPage extends StatelessWithDialogWidget {
   PrivacyPage(this.response);
@@ -14,11 +15,11 @@ class PrivacyPage extends StatelessWithDialogWidget {
   Future<Map> updatePrivacy(String jwt, int privacy) async {
     var res = await http
         .post(
-      "$SERVER_IP/update-me",
+      "$serverIp/update-me",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
       body: jsonEncode({"privacy": privacy}),
     )

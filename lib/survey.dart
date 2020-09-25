@@ -3,6 +3,7 @@ import 'dart:html';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import 'const.dart';
 import 'main.dart';
 import 'utils.dart';
@@ -43,11 +44,11 @@ class _SuveyPageState extends State<SurveyPage> {
   Future<Map> addSurvey(String jwt) async {
     var res = await http
         .post(
-      "$SERVER_IP/add-survey",
+      "$serverIp/add-survey",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
       body: jsonEncode({
         "febbre": febbre,

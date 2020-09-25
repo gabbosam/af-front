@@ -1,4 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+String get serverIp {
+  return DotEnv().env['SERVER_IP'];
+}
+
+String get apiKey {
+  return DotEnv().env['API_KEY'];
+}
+
+String get environment {
+  return DotEnv().env['ENV'];
+}
 
 bool isNullOrEmpty(String value) {
   return value == null || value.isEmpty;

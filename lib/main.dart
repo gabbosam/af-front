@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'const.dart';
 import 'user_profile.dart';
@@ -21,7 +22,8 @@ Map<String, dynamic> decodeJWTPayload(String jwt) {
       .decode(ascii.decode(base64.decode(base64.normalize(jwt.split(".")[1]))));
 }
 
-void main() {
+Future main() async {
+  await DotEnv().load('../.env');
   runApp(MyApp());
 }
 
@@ -98,10 +100,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<Map> attemptLogIn(String username, String password) async {
     var res = await http
-        .post("$SERVER_IP/login",
+        .post("$serverIp/login",
             headers: <String, String>{
               HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
-              'x-api-key': APIKEY
+              'x-api-key': apiKey
             },
             body: jsonEncode(
                 <String, String>{'username': username, 'password': password}))
@@ -225,11 +227,11 @@ class _MyAppState extends State<MyApp> {
 
   Future<Map> refreshToken(String token) async {
     var res = await http
-        .post("$SERVER_IP/refresh-token",
+        .post("$serverIp/refresh-token",
             headers: <String, String>{
               HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
               HttpHeaders.authorizationHeader: ' Bearer ' + token,
-              'x-api-key': APIKEY
+              'x-api-key': apiKey
             },
             body: jsonEncode({}))
         .catchError((error) {
@@ -249,7 +251,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Check@app',
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primarySwatch: environment == "dev" ? Colors.blue : Colors.red,
       ),
       home: FutureBuilder(
           future: jwtOrEmpty,
@@ -280,11 +282,11 @@ class MenuRoute extends StatelessWithDialogWidget {
 
   Future<Map> checkin(String jwt) async {
     var res = await http.post(
-      "$SERVER_IP/check-in",
+      "$serverIp/check-in",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
     ).catchError((error) {
       print(error.toString());
@@ -295,11 +297,11 @@ class MenuRoute extends StatelessWithDialogWidget {
 
   Future<Map> checkout(String jwt) async {
     var res = await http.post(
-      "$SERVER_IP/check-out",
+      "$serverIp/check-out",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
     ).catchError((error) {
       print(error.toString());
@@ -310,11 +312,11 @@ class MenuRoute extends StatelessWithDialogWidget {
 
   Future<Map> logout(String jwt) async {
     var res = await http.post(
-      "$SERVER_IP/logout",
+      "$serverIp/logout",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
     ).catchError((error) {
       print(error.toString());
@@ -325,11 +327,11 @@ class MenuRoute extends StatelessWithDialogWidget {
 
   Future<Map> me(String jwt) async {
     var res = await http.get(
-      "$SERVER_IP/me",
+      "$serverIp/me",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
     ).catchError((error) {
       print(error.toString());
@@ -340,11 +342,11 @@ class MenuRoute extends StatelessWithDialogWidget {
 
   Future<Map> printSurvey(String jwt) async {
     var res = await http.get(
-      "$SERVER_IP/pdf-gen",
+      "$serverIp/pdf-print",
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Bearer ' + jwt,
-        'x-api-key': APIKEY
+        'x-api-key': apiKey
       },
     ).catchError((error) {
       print(error.toString());
@@ -541,8 +543,13 @@ class MenuRoute extends StatelessWithDialogWidget {
                                   "Richiesta di stampa... attendere"));
                               var response = await printSurvey(jwt);
                               if (response != null) {
-                                js.context
-                                    .callMethod("open", [response["url"]]);
+                                if (response["url"] == "NULL") {
+                                  Scaffold.of(context).showSnackBar(doneSnack(
+                                      "Stampa non ancora disponibile... riprova"));
+                                } else {
+                                  js.context
+                                      .callMethod("open", [response["url"]]);
+                                }
                               }
                             }
                           },
