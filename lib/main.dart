@@ -62,38 +62,12 @@ class StatelessWithDialogWidget extends StatelessWidget {
   }
 }
 
-class StatefulWithDialogWidget extends StatefulWidget {
-  void displayDialog(context, title, text) => showDialog(
-        context: context,
-        builder: (context) =>
-            AlertDialog(title: Text(title), content: Text(text)),
-      );
-
-  @override
-  Widget build(BuildContext context) {
-    // ignore: todo
-    // TODO: implement build
-    throw UnimplementedError();
-  }
-
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
-  }
-}
-
-class LoginPage extends StatefulWithDialogWidget {
+class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  void displayDialog(context, title, text) => showDialog(
-        context: context,
-        builder: (context) =>
-            AlertDialog(title: Text(title), content: Text(text)),
-      );
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberLogin = false;
@@ -190,7 +164,9 @@ class _LoginPageState extends State<LoginPage> {
                             "Username o password errate");
                       }
                     },
-                    child: Text("ENTRA", style: TextStyle(fontSize: 20))),
+                    child: Text("ENTRA",
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(fontSize: 20))),
               )
             ],
           ),
@@ -276,9 +252,19 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class MenuRoute extends StatelessWithDialogWidget {
+class MenuRoute extends StatefulWidget {
   MenuRoute(this.response);
   final Map<String, dynamic> response;
+  @override
+  _MenuRouteState createState() => _MenuRouteState(this.response);
+}
+
+class _MenuRouteState extends State<MenuRoute> {
+  _MenuRouteState(this.response);
+  final Map<String, dynamic> response;
+
+  String checkInDate = "";
+  String checkOutDate = "";
 
   Future<Map> checkin(String jwt) async {
     var res = await http.post(
@@ -447,8 +433,8 @@ class MenuRoute extends StatelessWithDialogWidget {
                             builder: (context) => UserProfile(
                                 this.response, this.response["profile"])));
                   } else {
-                    displayDialog(context, "Errore",
-                        "Impossibile recuperare le informazioni dell'utente");
+                    Scaffold.of(context).showSnackBar(failSnack(
+                        "Impossibile recuperare le informazioni dell'utente"));
                   }
                   break;
                 case "changepwd":
@@ -480,14 +466,15 @@ class MenuRoute extends StatelessWithDialogWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
           //var qrcode = await scanQRCode();
           displayDialog(
               context, "Scansione codice", "Funzionalità ancora non attiva");
+          // Scaffold.of(context)
+          //     .showSnackBar(failSnack("Funzionalità ancora non attiva"));
         },
-        label: Text('Scansiona'),
-        icon: Icon(Icons.qr_code_scanner_outlined),
+        child: Icon(Icons.qr_code_scanner_outlined),
         backgroundColor: Colors.red[100],
       ),
       body: Builder(builder: (BuildContext context) {
@@ -579,7 +566,18 @@ class MenuRoute extends StatelessWithDialogWidget {
                           var response = await checkin(jwt);
                           if (response != null) {
                             this.response["token"] = response["token"];
-                            window.localStorage["hasCheckin"] = "1";
+                            var result = json.decode(ascii.decode(base64.decode(
+                                base64.normalize(
+                                    this.response["token"].split(".")[1]))));
+                            //print(result);
+                            setState(() {
+                              checkInDate =
+                                  "Ultimo accesso: " + result["last_checkin"] ??
+                                      "";
+                            });
+
+                            window.localStorage["hasCheckin"] =
+                                result["access_hash"];
                             Scaffold.of(context).showSnackBar(doneSnack(
                                 "L'ingresso è stato registrato correttamente"));
                             // displayDialog(context, "Check in effettuato",
@@ -589,11 +587,19 @@ class MenuRoute extends StatelessWithDialogWidget {
                                 "Registrazione accesso fallito, riprovare"));
                           }
                         },
-                        child: Row(
+                        child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.meeting_room),
-                              Text('INGRESSO', style: TextStyle(fontSize: 20))
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.meeting_room),
+                                    Text('INGRESSO',
+                                        style: TextStyle(fontSize: 20))
+                                  ]),
+                              if (checkInDate != "")
+                                Text(checkInDate,
+                                    style: TextStyle(fontSize: 12))
                             ]),
                       )),
                   const SizedBox(height: 50),
@@ -607,6 +613,16 @@ class MenuRoute extends StatelessWithDialogWidget {
                             var response = await checkout(jwt);
                             if (response != null) {
                               this.response["token"] = response["token"];
+                              var result = json.decode(ascii.decode(
+                                  base64.decode(base64.normalize(
+                                      this.response["token"].split(".")[1]))));
+                              //print(result);
+                              setState(() {
+                                checkOutDate = "Ultima uscita: " +
+                                        result["last_checkout"] ??
+                                    "";
+                              });
+                              window.localStorage.remove("hasCheckin");
                               Scaffold.of(context).showSnackBar(doneSnack(
                                   "L'uscita è stata registrata correttamente"));
                               // displayDialog(context, "Check out effettuato",
@@ -616,15 +632,23 @@ class MenuRoute extends StatelessWithDialogWidget {
                                   "Registrazione uscita fallita, riprovare"));
                             }
                           } else {
-                            displayDialog(context, "Uscita",
-                                "Prima devi effettuare l'ingresso premendo sul tasto INGRESSO");
+                            Scaffold.of(context).showSnackBar(failSnack(
+                                "Prima devi effettuare l'ingresso premendo sul tasto INGRESSO"));
                           }
                         },
-                        child: Row(
+                        child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.exit_to_app),
-                              Text('USCITA', style: TextStyle(fontSize: 20))
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.exit_to_app),
+                                    Text('USCITA',
+                                        style: TextStyle(fontSize: 20))
+                                  ]),
+                              if (checkOutDate != "")
+                                Text(checkOutDate,
+                                    style: TextStyle(fontSize: 12))
                             ]),
                       ))
                 ],

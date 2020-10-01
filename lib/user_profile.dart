@@ -7,7 +7,7 @@ import 'const.dart';
 import 'main.dart';
 import 'utils.dart';
 
-class UserProfile extends StatefulWithDialogWidget {
+class UserProfile extends StatefulWidget {
   final Map<String, dynamic> response;
   final Map<String, dynamic> profile;
 
