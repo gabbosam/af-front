@@ -20,8 +20,8 @@ bool isNullOrEmpty(String value) {
 bool isAdult(String birthDate) {
   DateTime now = DateTime.now();
   List<String> parts = birthDate.split("/");
-  DateTime dateOfBirth = DateTime(
-      int.parse(parts[2]), int.parse(parts[1]) - 1, int.parse(parts[0]));
+  DateTime dateOfBirth =
+      DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
   int yearDiff = now.year - dateOfBirth.year;
   int monthDiff = now.month - dateOfBirth.month;
   int dayDiff = now.day - dateOfBirth.day;
@@ -32,11 +32,12 @@ List<int> surveyDayLeft(String lastEdit) {
   if (isNullOrEmpty(lastEdit)) return [];
   DateTime now = DateTime.now();
   List<String> parts = lastEdit.split("/");
-  DateTime lastEditDate = DateTime(
-      int.parse(parts[2]), int.parse(parts[1]) - 1, int.parse(parts[0]));
+  DateTime lastEditDate =
+      DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+  Duration difference = now.difference(lastEditDate);
+  int dayDiff = 14 - difference.inDays;
   int yearDiff = now.year - lastEditDate.year;
   int monthDiff = now.month - lastEditDate.month;
-  int dayDiff = 14 - (now.day - lastEditDate.day);
   return [yearDiff, monthDiff, dayDiff];
 }
 
@@ -68,3 +69,9 @@ SnackBar failSnack(String message) {
     Text(message)
   ]));
 }
+
+void displayDialog(context, title, text) => showDialog(
+      context: context,
+      builder: (context) =>
+          AlertDialog(title: Text(title), content: Text(text)),
+    );
