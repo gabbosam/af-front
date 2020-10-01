@@ -8,7 +8,7 @@ import 'const.dart';
 import 'main.dart';
 import 'utils.dart';
 
-class SurveyPage extends StatefulWithDialogWidget {
+class SurveyPage extends StatefulWidget {
   final Map<String, dynamic> response;
 
   SurveyPage(this.response);
