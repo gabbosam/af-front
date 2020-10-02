@@ -368,8 +368,7 @@ class _MenuRouteState extends State<MenuRoute> {
 
   @override
   Widget build(BuildContext context) {
-    var userInfo = json.decode(ascii.decode(
-        base64.decode(base64.normalize(this.response["token"].split(".")[1]))));
+    var userInfo = decodeJWTPayload(this.response["token"]);
 
     var _needSurvey = needSurvey(userInfo["date_submit_survey"] ?? null);
     var _dayLeft = surveyDayLeft(userInfo["date_submit_survey"] ?? null);
@@ -388,6 +387,9 @@ class _MenuRouteState extends State<MenuRoute> {
             " giorni";
 
     var raisedButtonSize = {"width": 360.0, "height": 60.0};
+
+    checkInDate = "Ultimo accesso: " + (userInfo["last_checkin"] ?? "...");
+    checkOutDate = "Ultima uscita: " + (userInfo["last_checkout"] ?? "...");
 
     return Scaffold(
       appBar: AppBar(
@@ -566,14 +568,12 @@ class _MenuRouteState extends State<MenuRoute> {
                           var response = await checkin(jwt);
                           if (response != null) {
                             this.response["token"] = response["token"];
-                            var result = json.decode(ascii.decode(base64.decode(
-                                base64.normalize(
-                                    this.response["token"].split(".")[1]))));
+                            var result =
+                                decodeJWTPayload(this.response["token"]);
                             //print(result);
                             setState(() {
-                              checkInDate =
-                                  "Ultimo accesso: " + result["last_checkin"] ??
-                                      "";
+                              checkInDate = "Ultimo accesso: " +
+                                  (result["last_checkin"] ?? "");
                             });
 
                             window.localStorage["hasCheckin"] =
@@ -613,14 +613,12 @@ class _MenuRouteState extends State<MenuRoute> {
                             var response = await checkout(jwt);
                             if (response != null) {
                               this.response["token"] = response["token"];
-                              var result = json.decode(ascii.decode(
-                                  base64.decode(base64.normalize(
-                                      this.response["token"].split(".")[1]))));
+                              var result =
+                                  decodeJWTPayload(this.response["token"]);
                               //print(result);
                               setState(() {
                                 checkOutDate = "Ultima uscita: " +
-                                        result["last_checkout"] ??
-                                    "";
+                                    (result["last_checkout"] ?? "");
                               });
                               window.localStorage.remove("hasCheckin");
                               Scaffold.of(context).showSnackBar(doneSnack(
